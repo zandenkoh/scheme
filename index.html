@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Schedule</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/png" href="https://m.media-amazon.com/images/I/411kMCOefSL.jpg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #fafafa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+            user-select: none;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            padding: 0 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 25px 0;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-family: 'Lora', serif;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #222;
+        }
+
+        .nav {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .nav button {
+            background: none;
+            border: 1px solid #ddd;
+            border-radius: 50%;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .nav button:hover {
+            background: #f5f5f5;
+            border-color: #bbb;
+        }
+
+        .nav svg {
+            width: 20px;
+            height: 20px;
+            stroke: #555;
+        }
+
+        #current-day {
+            font-size: 1.2rem;
+            font-weight: 500;
+            color: #444;
+            padding: 5px 15px;
+            background: #f0f0f0;
+            border-radius: 20px;
+        }
+
+        .timeline {
+            background: #fff;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            max-height: 70vh;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #bbb #f5f5f5;
+        }
+
+        .timeline::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .timeline::-webkit-scrollbar-thumb {
+            background: #bbb;
+            border-radius: 4px;
+        }
+
+        .timeline::-webkit-scrollbar-track {
+            background: #f5f5f5;
+        }
+
+        .time-slots {
+            position: relative;
+        }
+
+        .time-slot {
+            display: flex;
+            align-items: center;
+            padding: 20px 0;
+            border-bottom: 1px solid #f0f0f0;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot:last-child {
+            border-bottom: none;
+        }
+
+        .time-slot.current {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffebee 100%);
+            border-radius: 0;
+            padding: 20px 15px;
+            margin: 10px 0;
+            box-shadow: 0 6px 20px rgba(255, 152, 0, 0.15);
+            border-left: 6px solid #ff9800;
+        }
+
+        .time-slot .time {
+            width: 180px;
+            font-size: 1rem;
+            color: #666;
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .time-slot .activity {
+            flex: 1;
+            font-size: 1.1rem;
+            color: #333;
+            padding: 10px 15px;
+            background: #f9f9f9;
+            border-radius: 6px;
+            transition: all 0.3s ease;
+        }
+
+        .time-slot.current .activity {
+            background: #ff9800;
+            color: #fff;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(255, 152, 0, 0.3);
+            font-size: 1.2rem;
+            /* Slightly larger for emphasis */
+        }
+
+        .time-slot.empty .activity {
+            background: transparent;
+        }
+
+        .time-slot.current.empty {
+            background: transparent;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1.2rem;
+            box-shadow: none;
+        }
+
+        .time-slot.current.empty .activity {
+            background: transparent;
+            color: #fff;
+            font-weight: 500;
+            font-size: 1.2rem;
+            box-shadow: none;
+        }
+
+        .time-slot.empty .activity {
+            color: #aaa;
+            background: none;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                flex-direction: column;
+                gap: 15px;
+                padding: 20px 0;
+            }
+
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .time-slot .time {
+                width: 190px;
+                font-size: 0.95rem;
+            }
+
+            .time-slot .activity {
+                font-size: 1rem;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 0;
+            }
+
+            .timeline {
+                padding: 20px;
+                max-height: 80vh;
+            }
+
+            .timeline::-webkit-scrollbar {
+                display: none;
+            }
+
+            .time-slot .time {
+                width: 190px;
+                font-size: 0.9rem;
+            }
+
+            .time-slot .activity {
+                font-size: 0.95rem;
+                padding: 8px 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>Daily Schedule</h1>
+            <div class="nav">
+                <button id="prev-day" aria-label="Previous Day">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                    </svg>
+                </button>
+                <span id="current-day"></span>
+                <button id="next-day" aria-label="Next Day">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                    </svg>
+                </button>
+            </div>
+        </header>
+        <main class="timeline">
+            <div class="time-slots" id="time-slots"></div>
+        </main>
+    </div>
+    <script>
+        const schedule = {
+            "Monday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "School",
+                "8:30 AM": "School",
+                "9:00 AM": "School",
+                "9:30 AM": "School",
+                "10:00 AM": "School",
+                "10:30 AM": "School",
+                "11:00 AM": "School",
+                "11:30 AM": "School",
+                "12:00 PM": "School",
+                "12:30 PM": "School",
+                "1:00 PM": "School",
+                "1:30 PM": "",
+                "2:00 PM": "",
+                "2:30 PM": "Lunch",
+                "3:00 PM": "Homework + Study",
+                "3:30 PM": "Homework + Study",
+                "4:00 PM": "Homework + Study",
+                "4:30 PM": "Homework + Study",
+                "5:00 PM": "Homework + Study",
+                "5:30 PM": "Academia",
+                "6:00 PM": "Academia",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "张老师",
+                "8:00 PM": "张老师",
+                "8:30 PM": "张老师",
+                "9:00 PM": "张老师",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Tuesday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "School",
+                "8:30 AM": "School",
+                "9:00 AM": "School",
+                "9:30 AM": "School",
+                "10:00 AM": "School",
+                "10:30 AM": "School",
+                "11:00 AM": "School",
+                "11:30 AM": "School",
+                "12:00 PM": "School",
+                "12:30 PM": "School",
+                "1:00 PM": "School",
+                "1:30 PM": "",
+                "2:00 PM": "Homework",
+                "2:30 PM": "Homework",
+                "3:00 PM": "CCA",
+                "3:30 PM": "CCA",
+                "4:00 PM": "CCA",
+                "4:30 PM": "CCA",
+                "5:00 PM": "CCA",
+                "5:30 PM": "CCA",
+                "6:00 PM": "CCA",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Thinker",
+                "8:00 PM": "Thinker",
+                "8:30 PM": "Thinker",
+                "9:00 PM": "Thinker",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Wednesday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "School",
+                "8:30 AM": "School",
+                "9:00 AM": "School",
+                "9:30 AM": "School",
+                "10:00 AM": "School",
+                "10:30 AM": "School",
+                "11:00 AM": "School",
+                "11:30 AM": "School",
+                "12:00 PM": "School",
+                "12:30 PM": "School",
+                "1:00 PM": "School",
+                "1:30 PM": "",
+                "2:00 PM": "",
+                "2:30 PM": "Lunch",
+                "3:00 PM": "CCA",
+                "3:30 PM": "CCA",
+                "4:00 PM": "CCA",
+                "4:30 PM": "CCA",
+                "5:00 PM": "CCA",
+                "5:30 PM": "CCA",
+                "6:00 PM": "CCA",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Homework",
+                "8:00 PM": "Homework",
+                "8:30 PM": "Homework",
+                "9:00 PM": "Homework",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Thursday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "School",
+                "8:30 AM": "School",
+                "9:00 AM": "School",
+                "9:30 AM": "School",
+                "10:00 AM": "School",
+                "10:30 AM": "School",
+                "11:00 AM": "School",
+                "11:30 AM": "School",
+                "12:00 PM": "School",
+                "12:30 PM": "School",
+                "1:00 PM": "School",
+                "1:30 PM": "",
+                "2:00 PM": "",
+                "2:30 PM": "Lunch",
+                "3:00 PM": "Homework + Study",
+                "3:30 PM": "Homework + Study",
+                "4:00 PM": "Homework + Study",
+                "4:30 PM": "Homework + Study",
+                "5:00 PM": "Homework + Study",
+                "5:30 PM": "SMO prep",
+                "6:00 PM": "SMO prep",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Revision / Projects",
+                "8:00 PM": "Revision / Projects",
+                "8:30 PM": "Revision / Projects",
+                "9:00 PM": "Revision / Projects",
+                "9:30 PM": "Sleep",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Friday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "School",
+                "8:30 AM": "School",
+                "9:00 AM": "School",
+                "9:30 AM": "School",
+                "10:00 AM": "School",
+                "10:30 AM": "School",
+                "11:00 AM": "School",
+                "11:30 AM": "School",
+                "12:00 PM": "School",
+                "12:30 PM": "School",
+                "1:00 PM": "School",
+                "1:30 PM": "",
+                "2:00 PM": "",
+                "2:30 PM": "Lunch",
+                "3:00 PM": "Homework + Study",
+                "3:30 PM": "Homework + Study",
+                "4:00 PM": "Homework / Study",
+                "4:30 PM": "Homework / Study",
+                "5:00 PM": "Homework / Study",
+                "5:30 PM": "Homework / Study",
+                "6:00 PM": "Homework / Study",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Study",
+                "8:00 PM": "Study",
+                "8:30 PM": "",
+                "9:00 PM": "",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Saturday": {
+                "7:00 AM": "",
+                "7:30 AM": "Breakfast",
+                "8:00 AM": "Exercise",
+                "8:30 AM": "Breakfast",
+                "9:00 AM": "Homework + Study",
+                "9:30 AM": "Homework + Study",
+                "10:00 AM": "Homework + Study",
+                "10:30 AM": "Homework + Study",
+                "11:00 AM": "Homework + Study",
+                "11:30 AM": "SMO / Projects",
+                "12:00 PM": "SMO / Projects",
+                "12:30 PM": "Lunch",
+                "1:00 PM": "Study",
+                "1:30 PM": "Study",
+                "2:00 PM": "Study",
+                "2:30 PM": "Self Improvement",
+                "3:00 PM": "Self Improvement",
+                "3:30 PM": "SMO / Projects",
+                "4:00 PM": "SMO / Projects",
+                "4:30 PM": "Cool Things",
+                "5:00 PM": "Cool Things",
+                "5:30 PM": "SMO prep",
+                "6:00 PM": "Study",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Revision / Projects",
+                "8:00 PM": "Revision / Projects",
+                "8:30 PM": "Revision / Projects",
+                "9:00 PM": "",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            },
+            "Sunday": {
+                "7:00 AM": "",
+                "7:30 AM": "",
+                "8:00 AM": "Exercise",
+                "8:30 AM": "Breakfast",
+                "9:00 AM": "Homework + Study",
+                "9:30 AM": "Homework + Study",
+                "10:00 AM": "Homework + Study",
+                "10:30 AM": "Homework + Study",
+                "11:00 AM": "Homework + Study",
+                "11:30 AM": "SMO / Projects",
+                "12:00 PM": "SMO / Projects",
+                "12:30 PM": "Lunch",
+                "1:00 PM": "Study",
+                "1:30 PM": "Study",
+                "2:00 PM": "Study",
+                "2:30 PM": "Self Improvement",
+                "3:00 PM": "Self Improvement",
+                "3:30 PM": "SMO / Projects",
+                "4:00 PM": "SMO / Projects",
+                "4:30 PM": "Cool Things",
+                "5:00 PM": "Cool Things",
+                "5:30 PM": "SMO prep",
+                "6:00 PM": "Study",
+                "6:30 PM": "Dinner",
+                "7:00 PM": "Dinner",
+                "7:30 PM": "Revision / Projects",
+                "8:00 PM": "Revision / Projects",
+                "8:30 PM": "Revision / Projects",
+                "9:00 PM": "",
+                "9:30 PM": "",
+                "10:00 PM": "Sleep",
+                "10:30 PM": ""
+            }
+        };
+
+        const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+        const times = [
+            "7:00 AM", "7:30 AM", "8:00 AM", "8:30 AM", "9:00 AM", "9:30 AM", "10:00 AM", "10:30 AM",
+            "11:00 AM", "11:30 AM", "12:00 PM", "12:30 PM", "1:00 PM", "1:30 PM", "2:00 PM", "2:30 PM",
+            "3:00 PM", "3:30 PM", "4:00 PM", "4:30 PM", "5:00 PM", "5:30 PM", "6:00 PM", "6:30 PM",
+            "7:00 PM", "7:30 PM", "8:00 PM", "8:30 PM", "9:00 PM", "9:30 PM", "10:00 PM", "10:30 PM"
+        ];
+
+        let currentDayIndex = new Date().getDay() - 1;
+        if (currentDayIndex < 0) currentDayIndex = 6;
+
+        function parseTime(timeStr) {
+            const [time, period] = timeStr.split(" ");
+            let [hours, minutes] = time.split(":");
+            hours = parseInt(hours);
+            if (period === "PM" && hours !== 12) hours += 12;
+            if (period === "AM" && hours === 12) hours = 0;
+            return hours * 60 + parseInt(minutes);
+        }
+
+        function renderDay() {
+            const currentDay = days[currentDayIndex];
+            document.getElementById("current-day").textContent = currentDay;
+
+            const timeSlots = document.getElementById("time-slots");
+            timeSlots.innerHTML = "";
+
+            let previousActivity = null;
+            let startTime = null;
+            let slotHeights = [];
+            let currentSlotIndex = -1;
+
+            const now = new Date();
+            const currentMinutes = now.getHours() * 60 + now.getMinutes();
+            const startOfDay = parseTime("7:00 AM");
+            const endOfDay = parseTime("10:30 PM");
+
+            times.forEach((time, index) => {
+                const activity = schedule[currentDay][time] || "";
+                const isLastSlot = index === times.length - 1;
+                const timeMinutes = parseTime(time);
+
+                if (activity === previousActivity && !isLastSlot) {
+                    return;
+                }
+
+                if (previousActivity !== null) {
+                    const slot = document.createElement("div");
+                    const duration = startTime !== time ? `${startTime} - ${times[index]}` : startTime;
+                    const startMinutes = parseTime(startTime);
+                    const endMinutes = parseTime(times[index]);
+                    const isCurrent = currentDayIndex === new Date().getDay() - 1 &&
+                        currentMinutes >= startMinutes &&
+                        currentMinutes < endMinutes;
+
+                    slot.className = `time-slot ${previousActivity ? "" : "empty"} ${isCurrent ? "current" : ""}`;
+                    slot.innerHTML = `
+                        <span class="time">${duration}</span>
+                        <span class="activity">${previousActivity}</span>
+                    `;
+                    timeSlots.appendChild(slot);
+                    slotHeights.push(slot.offsetHeight);
+                    if (isCurrent) currentSlotIndex = slotHeights.length - 1;
+                }
+
+                if (isLastSlot && activity) {
+                    const slot = document.createElement("div");
+                    const duration = startTime !== time ? `${time} - ${times[index]}` : time;
+                    const startMinutes = parseTime(time);
+                    const isCurrent = currentDayIndex === new Date().getDay() - 1 &&
+                        currentMinutes >= startMinutes &&
+                        currentMinutes <= endOfDay;
+
+                    slot.className = `time-slot ${activity ? "" : "empty"} ${isCurrent ? "current" : ""}`;
+                    slot.innerHTML = `
+                        <span class="time">${duration}</span>
+                        <span class="activity">${activity}</span>
+                    `;
+                    timeSlots.appendChild(slot);
+                    slotHeights.push(slot.offsetHeight);
+                    if (isCurrent) currentSlotIndex = slotHeights.length - 1;
+                }
+
+                previousActivity = activity;
+                startTime = time;
+            });
+
+            // Auto-scroll to current task if it exists
+            if (currentSlotIndex >= 0 && currentDayIndex === new Date().getDay() - 1) {
+                const timeline = document.querySelector(".timeline");
+                const scrollPosition = slotHeights.slice(0, currentSlotIndex).reduce((a, b) => a + b, 0);
+                timeline.scrollTop = scrollPosition - timeline.offsetHeight / 3;
+            }
+        }
+
+        document.getElementById("prev-day").addEventListener("click", () => {
+            currentDayIndex = (currentDayIndex - 1 + days.length) % days.length;
+            renderDay();
+        });
+
+        document.getElementById("next-day").addEventListener("click", () => {
+            currentDayIndex = (currentDayIndex + 1) % days.length;
+            renderDay();
+        });
+
+        renderDay();
+        setInterval(renderDay, 60000);
+    </script>
+</body>
+
+</html>
