@@ -245,6 +245,10 @@
             .header {
                 padding: 10px 15px;
             }
+            
+            .header h1 {
+                width: fit-content;
+            }
 
             .timeline {
                 padding: 15px;
@@ -256,6 +260,7 @@
 
             .time-slot .time {
                 font-size: 0.85rem;
+                width: 190px;
             }
 
             .time-slot .remaining-time {
@@ -593,7 +598,7 @@
                         const remainingMinutes = endMinutes - currentMinutes;
                         const hours = Math.floor(remainingMinutes / 60);
                         const minutes = remainingMinutes % 60;
-                        remainingTimeHtml = `<span class="remaining-time">${hours > 0 ? hours + 'hr ' : ''}${minutes}min remaining</span>`;
+                        remainingTimeHtml = `<span class="remaining-time">${hours > 0 ? hours + ' hr ' : ''} ${minutes} min remaining</span>`;
                     }
 
                     slot.className = `time-slot ${previousActivity ? "" : "empty"} ${isCurrent ? "current" : ""}`;
